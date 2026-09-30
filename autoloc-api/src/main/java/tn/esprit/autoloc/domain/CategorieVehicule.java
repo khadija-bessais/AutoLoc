@@ -5,5 +5,6 @@ public enum CategorieVehicule {
     COMPACTE,
     BERLINE,
     SUV,
-    LUXE
+    LUXE,
+    UTILITAIRE
 }
