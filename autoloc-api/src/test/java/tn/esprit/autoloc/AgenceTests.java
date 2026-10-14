@@ -4,10 +4,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 import tn.esprit.autoloc.domain.Agence;
-import tn.esprit.autoloc.domain.Vehicule;
 import tn.esprit.autoloc.domain.CategorieVehicule;
 import tn.esprit.autoloc.domain.StatutVehicule;
+import tn.esprit.autoloc.domain.Vehicule;
+import tn.esprit.autoloc.repository.IAgenceRepository;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -16,10 +21,12 @@ import java.util.Set;
 public class AgenceTests {
 
     @Autowired
-    private AgenceRepositoryMock agenceRepository;
+    private AgenceRepositoryMock basicAgenceRepository;
 
-    @Test
-    public void addAgence() {
+    @Autowired
+    private IAgenceRepository fullAgenceRepository;
+
+    private void addAgence(CrudRepository<Agence, Long> repository) {
 
         Agence agence = new Agence();
 
@@ -30,7 +37,7 @@ public class AgenceTests {
 
         Vehicule vehicule1 = new Vehicule();
         vehicule1.setCategorie(CategorieVehicule.SUV);
-        vehicule1.setImmatriculation("785414TU96");
+        vehicule1.setImmatriculation("785414TU" + (int) System.currentTimeMillis());
         vehicule1.setMarque("Isuzu");
         vehicule1.setModele("DMax");
         vehicule1.setStatut(StatutVehicule.MAINTENANCE);
@@ -39,7 +46,7 @@ public class AgenceTests {
 
         Vehicule vehicule2 = new Vehicule();
         vehicule2.setCategorie(CategorieVehicule.UTILITAIRE);
-        vehicule2.setImmatriculation("785414TU95");
+        vehicule2.setImmatriculation("785414TU" + ((int) System.currentTimeMillis() + 1));
         vehicule2.setMarque("Toyota");
         vehicule2.setModele("Yaris");
         vehicule2.setStatut(StatutVehicule.DISPONIBLE);
@@ -48,15 +55,29 @@ public class AgenceTests {
 
         agence.setVehicules(Set.of(vehicule1, vehicule2));
 
-        agenceRepository.save(agence);
+        repository.save(agence);
     }
 
     @Test
-    public void loadAgence() {
+    public void basicAddAgence() {
+        addAgence(basicAgenceRepository);
+    }
 
-        Iterable<Agence> agences = agenceRepository.findAll();
+    @Test
+    public void fullAddAgence() {
+        addAgence(fullAgenceRepository);
+    }
+
+
+    private void loadAgence(CrudRepository<Agence, Long> repository, String repositoryType) {
+
+        Iterable<Agence> agences = repository.findAll();
 
         StringBuilder result = new StringBuilder();
+
+        result.append("Repository : ")
+                .append(repositoryType)
+                .append("\n\n");
 
         for (Agence agence : agences) {
 
@@ -81,8 +102,84 @@ public class AgenceTests {
         org.junit.jupiter.api.Assertions.fail(result.toString());
     }
 
+    @Test
+    public void basicLoadAgence() {
+        loadAgence(basicAgenceRepository, "Basic Repository");
+    }
 
+    @Test
+    public void fullLoadAgence() {
+        loadAgence(fullAgenceRepository, "Full Repository");
+    }
+
+    @Test
+    public void loadSortedAgences() {
+
+        Iterable<Agence> agences =
+                fullAgenceRepository.findAll(
+                        Sort.by(Sort.Direction.DESC, "idAgence")
+                );
+
+        StringBuilder result = new StringBuilder();
+
+        for (Agence agence : agences) {
+
+            result.append(agence.getIdAgence())
+                    .append(" | ")
+                    .append(agence.getNom())
+                    .append(" | ")
+                    .append(agence.getVille())
+                    .append(" | ")
+                    .append(agence.getAdresse())
+                    .append(" | ")
+                    .append(agence.getTelephone())
+                    .append("\n");
+        }
+
+        org.junit.jupiter.api.Assertions.fail(result.toString());
+    }
+
+    @Test
+    public void loadPagedAgences() {
+
+        Page<Agence> page =
+                fullAgenceRepository.findAll(
+                        PageRequest.of(
+                                0,
+                                2,
+                                Sort.by(Sort.Direction.DESC, "idAgence")
+                        )
+                );
+
+        StringBuilder result = new StringBuilder();
+
+        result.append("Nombre total de pages : ")
+                .append(page.getTotalPages())
+                .append("\n");
+
+        result.append("Page en cours : ")
+                .append(page.getNumber() + 1)
+                .append("\n\n");
+
+        for (Agence agence : page.getContent()) {
+
+            result.append(agence.getIdAgence())
+                    .append(" | ")
+                    .append(agence.getNom())
+                    .append(" | ")
+                    .append(agence.getVille())
+                    .append(" | ")
+                    .append(agence.getAdresse())
+                    .append(" | ")
+                    .append(agence.getTelephone())
+                    .append("\n");
+        }
+
+        org.junit.jupiter.api.Assertions.fail(result.toString());
+    }
 }
 
+
+@Repository
 interface AgenceRepositoryMock extends CrudRepository<Agence, Long> {
 }
