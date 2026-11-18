@@ -1,29 +1,22 @@
 package tn.esprit.autoloc.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
 @Table(name = "employe")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Employe {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idEmploye;
 
-    @Column(nullable = false, length = 50)
     private String nom;
-
-    @Column(nullable = false, length = 50)
     private String prenom;
 
-    @Column(nullable = false, length = 20)
-    private String role;
-
     @ManyToOne
+    @JsonBackReference("agence-employes")
     private Agence agence;
 }

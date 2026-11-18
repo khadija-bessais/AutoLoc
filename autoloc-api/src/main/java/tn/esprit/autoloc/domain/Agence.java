@@ -1,37 +1,57 @@
 package tn.esprit.autoloc.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "agence")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Agence {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idAgence;
 
-    @Column(nullable = false, length = 100)
     private String nom;
-
-    @Column(nullable = false, length = 100)
+    private String adresse;
+    private String telephone;
     private String ville;
 
-    @Column(nullable = false, length = 255)
-    private String adresse;
+    private int effectif;                       // étape 11
 
-    @Column(nullable = false, length = 20)
-    private String telephone;
-
-    @OneToMany(mappedBy = "agence" , cascade = CascadeType.PERSIST , fetch = FetchType.EAGER)
-    private Set<Vehicule> vehicules;
+    @OneToMany(mappedBy = "agence", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("agence-vehicules") // Résolution boucle Agence ↔ Vehicule
+    private List<Vehicule> vehicules;
 
     @OneToMany(mappedBy = "agence", fetch = FetchType.LAZY)
-    private Set<Employe> employes;
+    @JsonManagedReference("agence-employes") // Résolution boucle Agence ↔ Employe
+    private List<Employe> employes;
+
+    // --- Étape 10 : méthodes de symétrie ---
+    public void addEmploye(Employe employe) {
+        if (employes == null) {
+            employes = new ArrayList<>();
+        }
+        employes.add(employe);
+        employe.setAgence(this);
+    }
+
+    public void removeEmploye(Employe employe) {
+        if (employes != null) {
+            employes.remove(employe);
+        }
+        employe.setAgence(null);
+    }
+
+    // --- Alias de compatibilité ---
+    public Long getId() {
+        return idAgence;
+    }
+
+    public void setId(Long idAgence) {
+        this.idAgence = idAgence;
+    }
 }

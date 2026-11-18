@@ -1,10 +1,8 @@
 package tn.esprit.autoloc.domain;
 
 public enum CategorieVehicule {
-    ECONOMIQUE,
-    COMPACTE,
+    CITADINE,
     BERLINE,
     SUV,
-    LUXE,
     UTILITAIRE
 }

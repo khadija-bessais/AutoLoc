@@ -2,35 +2,28 @@ package tn.esprit.autoloc.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "contrat")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Contrat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idContrat;
 
-    @Column(nullable = false)
     private LocalDate dateSignature;
-
-    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal montantTotal;
-
-    @Column(nullable = false)
     private boolean valide;
 
-    @OneToMany(mappedBy = "contrat", fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
-    private Set<Paiement> paiements;
+    // Question 18 : Contrat ↔ Paiement (EAGER)
+    @OneToMany(mappedBy = "contrat", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Paiement> paiements;
 
+    // Question 20 : Contrat ↔ Reservation (Côté inverse)
     @OneToOne(mappedBy = "contrat")
     private Reservation reservation;
 }

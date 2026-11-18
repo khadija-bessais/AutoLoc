@@ -2,7 +2,6 @@ package tn.esprit.autoloc.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDate;
 
 @Entity
@@ -17,21 +16,18 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idReservation;
 
-    @Column(nullable = false)
     private LocalDate dateDebut;
-
-    @Column(nullable = false)
     private LocalDate dateFin;
 
-    @Column(nullable = false, length = 30)
-    private String statut;
-
+    // Question 16 : Relation vers Vehicule
     @ManyToOne
     private Vehicule vehicule;
 
+    // Question 16 : Relation vers Client
     @ManyToOne
     private Client client;
 
+    // Question 20 : Relation vers Contrat (clé étrangère dans reservation)
     @OneToOne
     private Contrat contrat;
 }

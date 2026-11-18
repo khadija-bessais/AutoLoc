@@ -1,10 +1,11 @@
 package tn.esprit.autoloc.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
-import java.util.Set;
-
+import java.util.List;
 
 @Entity
 @Table(name = "vehicule")
@@ -12,6 +13,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Vehicule {
 
     @Id
@@ -21,33 +23,32 @@ public class Vehicule {
     @Column(nullable = false, unique = true, length = 20)
     private String immatriculation;
 
-    @Column(nullable = false, length = 50)
     private String marque;
-
-    @Column(nullable = false, length = 50)
     private String modele;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private CategorieVehicule categorie;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal tarifJournalier;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private StatutVehicule statut;
+    private String categorie;
+    private String statut;
+    private Double tarifJournalier;
 
     @ManyToOne
+    @JsonBackReference("agence-vehicules")
     private Agence agence;
 
-    @OneToMany(mappedBy = "vehicule", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private Set<Reservation> reservations;
+    @OneToMany(mappedBy = "vehicule", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Reservation> reservations;
 
     @OneToMany(mappedBy = "vehicule")
-    private Set<Maintenance> maintenances;
+    @JsonIgnore
+    private List<Maintenance> maintenances;
 
     @ManyToMany
-    private Set<Equipement> equipements;
+    private List<Equipement> equipements;
 
+    @PreRemove
+    private void verifierAvantSuppression() {
+        if (equipements != null && !equipements.isEmpty()) {
+            throw new IllegalStateException(
+                    "Suppression impossible : la véhicule " + idVehicule + " a encore des équipements affectés.");
+        }
+    }
 }
